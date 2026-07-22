@@ -1,0 +1,27 @@
+<?php
+
+namespace Database\Seeders;
+use App\Models\User;
+use App\Models\Book;
+
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class FavoriteSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $users = User::all();
+        $books = Book::all();
+
+        foreach ($users as $user) {
+            // 各ユーザーにランダムで3〜5冊選出
+            $favoriteBooks = $books->random(rand(3, 5))->pluck('id');
+            $user->favorites()->syncWithoutDetaching($favoriteBooks);
+        }
+    }
+}
