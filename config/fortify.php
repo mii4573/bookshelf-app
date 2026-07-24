@@ -145,7 +145,7 @@ return [
 
     'features' => [
         Features::registration(),
-       
+
     ],
 
 ];

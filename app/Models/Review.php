@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-
 class Review extends Model
 {
     use HasFactory;
@@ -36,5 +35,4 @@ class Review extends Model
     {
         return $this->belongsToMany(User::class, 'review_like')->withTimestamps();
     }
-    
 }

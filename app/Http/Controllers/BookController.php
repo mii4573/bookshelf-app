@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use App\Models\Genre;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
-use Illuminate\Http\Request;
+use App\Models\Book;
+use App\Models\Genre;
+use Illuminate\Support\Arr;
 
 class BookController extends Controller
 {
@@ -15,8 +15,9 @@ class BookController extends Controller
      */
     public function index()
     {
-        // N+1問題を防止するために with('genres') を指定
+        // with('genres') に加え、reviews の平均評価を取得する withAvg を追加
         $books = Book::with('genres')
+            ->withAvg('reviews', 'rating')
             ->latest()
             ->paginate(10);
 
@@ -29,6 +30,7 @@ class BookController extends Controller
     public function create()
     {
         $genres = Genre::all();
+
         return view('books.create', compact('genres'));
     }
 
@@ -37,8 +39,9 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request)
     {
-        // ログインユーザーのIDをセットして書籍作成
-        $book = $request->user()->books()->create($request->validated());
+        // validated() から genres だけを除外して書籍を作成
+        $validated = $request->validated();
+        $book = $request->user()->books()->create(Arr::except($validated, ['genres']));
 
         // ジャンルの紐付け (中間テーブル)
         $book->genres()->sync($request->validated('genres'));
@@ -49,18 +52,16 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍詳細画面.
+     * 書籍詳細画面
      */
     public function show(Book $book)
     {
-        // レビュー（投稿日の新しい順）とジャンルを Eager Load
+        // レビューを新しい順（latest）にしつつ、関連データ（user, likedByUsers）も一緒にEager Load
         $book->load([
             'genres',
             'reviews' => function ($query) {
-                $query->latest();
+                $query->latest()->with(['user', 'likedByUsers']);
             },
-            'reviews.user',
-            'reviews.likedByUsers',
         ]);
 
         return view('books.show', compact('book'));
@@ -86,7 +87,8 @@ class BookController extends Controller
     public function update(UpdateBookRequest $request, Book $book)
     {
         // 認可チェックは UpdateBookRequest 内の authorize() で自動実行されるため省略可
-        $book->update($request->validated());
+        $validated = $request->validated();
+        $book->update(Arr::except($validated, ['genres']));
         $book->genres()->sync($request->validated('genres'));
 
         return redirect()

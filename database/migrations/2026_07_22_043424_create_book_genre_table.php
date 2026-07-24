@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('book_id')->constrained()->cascadeOnDelete();
             $table->foreignId('genre_id')->constrained()->cascadeOnDelete();
             $table->primary(['book_id', 'genre_id']);
-            
+
         });
     }
 

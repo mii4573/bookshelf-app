@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Review;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ReviewPolicy
 {
@@ -13,8 +12,8 @@ class ReviewPolicy
      */
     public function viewAny(User $user): bool
     {
-       return true;
-    } 
+        return true;
+    }
 
     /**
      * レビュー更新の権限判定（投稿者本人＋認証ユーザーのみ）
@@ -31,6 +30,4 @@ class ReviewPolicy
     {
         return $user->id === $review->user_id;
     }
-
-    
 }

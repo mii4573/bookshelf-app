@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
-use App\Models\Book;
+use Illuminate\Database\Seeder;
 
 class ReviewSeeder extends Seeder
 {
@@ -31,7 +30,9 @@ class ReviewSeeder extends Seeder
             $targetCount = ($index < 10) ? 3 : 2; // 10冊×3件 + 1冊×2件 = 32件
 
             foreach ($users->take($targetCount) as $user) {
-                if ($reviewCount >= 32) break;
+                if ($reviewCount >= 32) {
+                    break;
+                }
 
                 $rating = rand(3, 5);
                 Review::create([

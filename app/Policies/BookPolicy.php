@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Book;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class BookPolicy
 {
@@ -47,6 +46,4 @@ class BookPolicy
     {
         return $user->id === $book->user_id;
     }
-
-    
 }
