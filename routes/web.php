@@ -29,11 +29,11 @@ Route::middleware(['auth'])->group(function () {
     Route::match(['put', 'patch'], '/books/{book}', [BookController::class, 'update'])->name('books.update');
     Route::delete('/books/{book}', [BookController::class, 'destroy'])->name('books.destroy');
 
-    // レビュー管理 (※未実装のコントローラーは仮定義)
-    Route::post('/books/{book}/reviews', class_exists(ReviewController::class) ? [ReviewController::class, 'store'] : fn () => '')->name('reviews.store');
-    Route::get('/reviews/{review}/edit', class_exists(ReviewController::class) ? [ReviewController::class, 'edit'] : fn () => '')->name('reviews.edit');
-    Route::match(['put', 'patch'], '/reviews/{review}', class_exists(ReviewController::class) ? [ReviewController::class, 'update'] : fn () => '')->name('reviews.update');
-    Route::delete('/reviews/{review}', class_exists(ReviewController::class) ? [ReviewController::class, 'destroy'] : fn () => '')->name('reviews.destroy');
+    // レビュー管理
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
+    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])->name('reviews.edit');
+    Route::match(['put', 'patch'], '/reviews/{review}', [ReviewController::class, 'update'])->name('reviews.update');
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // ジャンル管理
     Route::get('/genres', class_exists(GenreController::class) ? [GenreController::class, 'index'] : fn () => '')->name('genres.index');
