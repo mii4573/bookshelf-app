@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class ReviewLikeTest extends TestCase
@@ -63,7 +61,7 @@ class ReviewLikeTest extends TestCase
             ->get(route('books.show', $book));
 
         $response->assertOk();
-        
+
         // 画面上（HTML内）にいいね数の「3」が表示されているか検証
         $response->assertSee('3');
     }

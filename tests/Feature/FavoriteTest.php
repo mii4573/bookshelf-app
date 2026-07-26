@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Book;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class FavoriteTest extends TestCase
@@ -33,7 +32,7 @@ class FavoriteTest extends TestCase
 
         $response->assertRedirect(route('login'));
     }
-    
+
     /**
      * 要件: お気に入り登録・解除ができる (DB更新)
      */
@@ -69,7 +68,7 @@ class FavoriteTest extends TestCase
     public function test_user_can_view_favorite_books_index(): void
     {
         $user = User::factory()->create();
-        
+
         // ユーザーがお気に入りに登録した本
         $favoritedBook = Book::factory()->create(['title' => 'お気に入りの本']);
         $user->favorites()->attach($favoritedBook->id);
@@ -82,7 +81,7 @@ class FavoriteTest extends TestCase
             ->get(route('favorites.index'));
 
         $response->assertOk();
-        
+
         // お気に入り登録した本が表示され、登録していない本が表示されていないことを検証
         $response->assertSee('お気に入りの本');
         $response->assertDontSee('登録していない本');

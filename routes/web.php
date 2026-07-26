@@ -53,3 +53,6 @@ Route::middleware(['auth'])->group(function () {
 
 // --- 詳細画面（/books/create などとのURL衝突を防ぐため一番下に配置） ---
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
+
+// ランキング画面（ゲストアクセス可）
+Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');

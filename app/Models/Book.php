@@ -66,5 +66,5 @@ class Book extends Model
         return $this->relationLoaded('favoritedByUsers')
             ? $this->favoritedByUsers->contains('id', $user->id)
             : $this->favoritedByUsers()->where('user_id', $user->id)->exists();
-    }    
+    }
 }
