@@ -35,4 +35,18 @@ class Review extends Model
     {
         return $this->belongsToMany(User::class, 'review_like')->withTimestamps();
     }
+
+    /**
+     * 指定したユーザーがこのレビューに「いいね」しているか判定
+     */
+    public function isLikedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        return $this->relationLoaded('likedByUsers')
+            ? $this->likedByUsers->contains('id', $user->id)
+            : $this->likedByUsers()->where('user_id', $user->id)->exists();
+    }
 }

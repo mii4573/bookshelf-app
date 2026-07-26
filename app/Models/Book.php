@@ -52,4 +52,19 @@ class Book extends Model
     {
         return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
     }
+
+    /**
+     * 指定したユーザーがこの書籍をお気に入り登録しているか判定
+     */
+    public function isFavoritedBy(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // 既に Eager Loading されている場合はメモリ上で判定（N+1対策）、なければDB問い合わせ
+        return $this->relationLoaded('favoritedByUsers')
+            ? $this->favoritedByUsers->contains('id', $user->id)
+            : $this->favoritedByUsers()->where('user_id', $user->id)->exists();
+    }    
 }

@@ -43,10 +43,12 @@ Route::middleware(['auth'])->group(function () {
     Route::match(['put', 'patch'], '/genres/{genre}', class_exists(GenreController::class) ? [GenreController::class, 'update'] : fn () => '')->name('genres.update');
     Route::delete('/genres/{genre}', class_exists(GenreController::class) ? [GenreController::class, 'destroy'] : fn () => '')->name('genres.destroy');
 
-    // お気に入り・いいね機能
-    Route::get('/favorites', class_exists(FavoriteController::class) ? [FavoriteController::class, 'index'] : fn () => '')->name('favorites.index');
-    Route::post('/books/{book}/favorites', class_exists(FavoriteController::class) ? [FavoriteController::class, 'toggle'] : fn () => '')->name('favorites.toggle');
-    Route::post('/reviews/{review}/like', class_exists(ReviewLikeController::class) ? [ReviewLikeController::class, 'toggle'] : fn () => '')->name('reviews.like');
+    // お気に入り関連
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'store'])->name('favorites.toggle');
+
+    // レビューのいいね関連
+    Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'store'])->name('reviews.like');
 });
 
 // --- 詳細画面（/books/create などとのURL衝突を防ぐため一番下に配置） ---

@@ -180,4 +180,41 @@ class BookTest extends TestCase
 
         $response->assertRedirect(route('books.index'));
     }
+
+    /**
+     * 8. 書籍編集画面へのアクセス（認可エラー：他人の書籍）
+     */
+    public function test_other_user_cannot_access_edit_book_page(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+
+        // 他のユーザーで編集画面（GET /books/{book}/edit）を開く
+        $response = $this->actingAs($otherUser)->get(route('books.edit', $book));
+
+        // Policyにより 403 Forbidden が返されるか
+        $response->assertStatus(403);
+    }
+
+    /**
+     * 9. 書籍の削除（認可エラー：他人の書籍）
+     */
+    public function test_other_user_cannot_delete_book(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+
+        // 他のユーザーで削除リクエスト（DELETE /books/{book}）を送信
+        $response = $this->actingAs($otherUser)->delete(route('books.destroy', $book));
+
+        // Policyにより 403 Forbidden が返されるか
+        $response->assertStatus(403);
+
+        // DBから削除されていないこと（本が残っていること）を検証
+        $this->assertDatabaseHas('books', [
+            'id' => $book->id,
+        ]);
+    }
 }
