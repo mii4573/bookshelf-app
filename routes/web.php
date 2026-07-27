@@ -36,12 +36,13 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // ジャンル管理
-    Route::get('/genres', class_exists(GenreController::class) ? [GenreController::class, 'index'] : fn () => '')->name('genres.index');
-    Route::get('/genres/create', class_exists(GenreController::class) ? [GenreController::class, 'create'] : fn () => '')->name('genres.create');
-    Route::post('/genres', class_exists(GenreController::class) ? [GenreController::class, 'store'] : fn () => '')->name('genres.store');
-    Route::get('/genres/{genre}/edit', class_exists(GenreController::class) ? [GenreController::class, 'edit'] : fn () => '')->name('genres.edit');
-    Route::match(['put', 'patch'], '/genres/{genre}', class_exists(GenreController::class) ? [GenreController::class, 'update'] : fn () => '')->name('genres.update');
-    Route::delete('/genres/{genre}', class_exists(GenreController::class) ? [GenreController::class, 'destroy'] : fn () => '')->name('genres.destroy');
+    Route::get('/genres', [GenreController::class, 'index'])->name('genres.index');
+    Route::get('/genres/create', [GenreController::class, 'create'])->name('genres.create');
+    Route::post('/genres', [GenreController::class, 'store'])->name('genres.store');
+    Route::get('/genres/{genre}', [GenreController::class, 'show'])->name('genres.show');
+    Route::get('/genres/{genre}/edit', [GenreController::class, 'edit'])->name('genres.edit');
+    Route::match(['put', 'patch'], '/genres/{genre}', [GenreController::class, 'update'])->name('genres.update');
+    Route::delete('/genres/{genre}', [GenreController::class, 'destroy'])->name('genres.destroy');
 
     // お気に入り関連
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
