@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Http\Requests\Api\V1\BookIndexRequest;
 use App\Http\Requests\Api\V1\BookStoreRequest;
 use App\Http\Requests\Api\V1\BookUpdateRequest;
 use App\Http\Resources\Api\V1\BookResource;
 use App\Models\Book;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 
 class BookController extends Controller
@@ -28,7 +26,7 @@ class BookController extends Controller
             $keyword = $request->keyword;
             $query->where(function ($q) use ($keyword) {
                 $q->where('title', 'like', "%{$keyword}%")
-                  ->orWhere('author', 'like', "%{$keyword}%");
+                    ->orWhere('author', 'like', "%{$keyword}%");
             });
         }
 
@@ -56,9 +54,9 @@ class BookController extends Controller
             ->withCount('reviews')
             ->find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
-                'message' => '書籍が見つかりません'
+                'message' => '書籍が見つかりません',
             ], 404);
         }
 
@@ -75,12 +73,13 @@ class BookController extends Controller
             if ($request->has('genres')) {
                 $book->genres()->sync($request->genres);
             }
+
             return $book;
         });
 
         $book->load('genres')
-             ->loadAvg('reviews', 'rating')
-             ->loadCount('reviews');
+            ->loadAvg('reviews', 'rating')
+            ->loadCount('reviews');
 
         return new BookResource($book);
     }
@@ -92,9 +91,9 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
-                'message' => '書籍が見つかりません'
+                'message' => '書籍が見つかりません',
             ], 404);
         }
 
@@ -106,8 +105,8 @@ class BookController extends Controller
         });
 
         $book->load('genres')
-             ->loadAvg('reviews', 'rating')
-             ->loadCount('reviews');
+            ->loadAvg('reviews', 'rating')
+            ->loadCount('reviews');
 
         return new BookResource($book);
     }
@@ -119,16 +118,16 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
-                'message' => '書籍が見つかりません'
+                'message' => '書籍が見つかりません',
             ], 404);
         }
 
         $book->delete();
 
         return response()->json([
-            'message' => '書籍を削除しました'
+            'message' => '書籍を削除しました',
         ], 204);
     }
 }
