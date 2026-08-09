@@ -1,67 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Bookshelf APP (書籍レビューアプリ)  
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+書籍の登録・検索・更新・削除・レビュー投稿および外部連携用APIを提供するWebアプリケーションです  
 
-## About Laravel
+## 概要  
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+本プロジェクトは、ユーザーが書籍を検索・管理しレビューや評価を投稿・共有できるプラットフォームです。  
+また外部アプリケーションからのデータ操作に対応するため、RESTfulなAPI(一覧取得、詳細取得、新規登録、更新・削除)を実装しています。  
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 使用技術  
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **OS**:Dockerが動作する任意のOS(macOS,Windows/WSL2,Linux)  
+* **バックエンド**:PHP 8.5/Laravel (PHP)
+* **データベース**:MySQL 8.4
+* **フロントエンド**:Vite/Tailwind CSS 3.4.0/@tailwindcss/forms/Alpine.js  
+* **開発環境**：Docker/laravel sail/phpMyAdmin  
+* **認証機能**:Laravel Fortify 
 
-## Learning Laravel
+## ER図  
+![ER図](docs/bookshelf-app.drawio.png)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 環境構築手順
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Docker（Laravel Sail）を使用したセットアップ手順です。
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 前提条件
+- Docker Desktop がインストールされていること
+- WSL2（Windows の場合）または Terminal が利用可能であること
 
-## Laravel Sponsors
+### 1. リポジトリのクローン
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/mii4573/bookshelf-app
+cd bookshelf-app
+``` 
 
-### Premium Partners
+### 2.環境変数ファイルの作成
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+cp .env.example .env
+```
+.envファイル内のデータベース接続情報や環境変数を適宜変更してください
 
-## Contributing
+### 3. Composerパッケージのインストール
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php85-composer:latest \
+    composer install --ignore-platform-reqs
+```
 
-## Code of Conduct
+### 4.Sail(Dockerコンテナ)の起動
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+./vendor/bin/sail up -d
+```
 
-## Security Vulnerabilities
+### 5.アプリケーションキーの生成
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+./vendor/bin/sail artisan key:generate
+```
 
-## License
+### 6.マイグレーションと初期データの投入
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# bookshelf-app
+```bash
+./vendor/bin/sail artisan migrate --seed
+```
+
+### 7.フロントエンドのアセットビルド
+
+```bash
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run dev
+```
+
+### 開発環境
+
+* Webアプリケーション：http://localhost
+* phpMyAdmin:http://localhost:8080
+
+### APIエンドポイント一覧
+
+外部アプリケーション連携用の RESTful API エンドポイントです。
+
+| メソッド | エンドポイント | 説明 | パラメータ / 備考 |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/v1/books` | 書籍一覧取得 | `keyword`（タイトル/著者検索）, `genre`（ジャンルID）, `per_page`（件数/デフォルト20） |
+| **GET** | `/api/v1/books/{id}` | 書籍詳細取得 | 平均評価 (`reviews_avg_rating`)・レビュー件数 (`reviews_count`) を含む |
+| **POST** | `/api/v1/books` | 書籍新規登録 | `title`, `author`, `genres` (配列) など。成功時: **201 Created** |
+| **PUT** | `/api/v1/books/{id}` | 書籍情報更新 | 登録情報の更新・ジャンル紐付けの更新 |
+| **DELETE** | `/api/v1/books/{id}` | 書籍削除 | 成功時: **204 No Content** (レスポンスボディなし) |
+
+### テストの実行方法
+
+```bash
+#　全テストの実行
+./vendor/bin/sail artisan test
+```
+
+> Note:カバレッジ計測について
+> カバレッジ計測は、普段の設計を無効化(コメントアウト)しています。
+>計測時のみ設定を有効化したあとに**コンテナを再起動**してから以下のコマンドを実行してください。
+
+```bash
+#1.設定変更後、コンテナを再起動して設定を反映
+./vendor/bin/sail restart
+
+#2.カバレッジ付でテストを実行
+./vendor/bin/sail artisan test --coverage
+
+```
+### 作成者：Minori Murakami

@@ -38,7 +38,7 @@ class BookController extends Controller
         }
 
         // ページネーション
-        $perPage = $request->get('per_page', 10);
+        $perPage = $request->get('per_page', 20);
         $books = $query->latest('id')->paginate($perPage);
 
         return BookResource::collection($books);
@@ -68,8 +68,16 @@ class BookController extends Controller
      */
     public function store(BookStoreRequest $request)
     {
-        $book = DB::transaction(function () use ($request) {
-            $book = Book::create($request->validated());
+        $validated = $request->validated();
+
+        // 【画像対策】image_url が空の場合はデフォルト画像URLを補完
+        if (empty($validated['image_url'])) {
+            $validated['image_url'] = 'https://placehold.co/400x600?text=No+Image';
+        }
+
+        // トランザクション処理（DB登録＆ジャンル紐付け）
+        $book = DB::transaction(function () use ($request, $validated) {
+            $book = Book::create($validated);
             if ($request->has('genres')) {
                 $book->genres()->sync($request->genres);
             }
@@ -77,11 +85,15 @@ class BookController extends Controller
             return $book;
         });
 
+        // リレーション＆追加情報のロード（トランザクション外で実行）
         $book->load('genres')
             ->loadAvg('reviews', 'rating')
             ->loadCount('reviews');
 
-        return new BookResource($book);
+        // 要件: 201ステータスと登録情報を返し、成功メッセージは含めない
+        return (new BookResource($book))
+            ->response()
+            ->setStatusCode(201);
     }
 
     /**
@@ -96,9 +108,11 @@ class BookController extends Controller
                 'message' => '書籍が見つかりません',
             ], 404);
         }
+        
+        $validated = $request->validated();
 
-        DB::transaction(function () use ($request, $book) {
-            $book->update($request->validated());
+        DB::transaction(function () use ($request, $book, $validated) {
+            $book->update($validated);
             if ($request->has('genres')) {
                 $book->genres()->sync($request->genres);
             }
@@ -126,8 +140,7 @@ class BookController extends Controller
 
         $book->delete();
 
-        return response()->json([
-            'message' => '書籍を削除しました',
-        ], 204);
+        // 要件: 204 No Content を返し、レスポンスボディは返さない
+        return response()->noContent();
     }
 }
