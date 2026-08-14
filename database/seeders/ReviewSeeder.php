@@ -17,32 +17,32 @@ class ReviewSeeder extends Seeder
         $users = User::all();
         $books = Book::all();
 
-        // 32件になるよう配分パターン（11冊に2〜4件ずつ配分）
+        // 評価別（1〜5）の簡潔な日本語コメントテンプレート
         $comments = [
-            5 => '非常に素晴らしい内容でした！何度も読み返したい一冊です。',
-            4 => 'とても読みやすく、大変勉強になりました。おすすめです。',
+            1 => '期待していた内容とは少し異なっていました。',
+            2 => '少し内容が難しく、自分にはあまり合いませんでした。',
             3 => '内容は良かったですが、もう少し具体例があると助かります。',
+            4 => 'とても読みやすく、大変勉強になりました。おすすめです。',
+            5 => '非常に素晴らしい内容でした！何度も読み返したい一冊です。',
         ];
 
-        $reviewCount = 0;
-        foreach ($books as $index => $book) {
-            // 書籍ごとに2〜4件割り当て（合計32件にする調整）
-            $targetCount = ($index < 10) ? 3 : 2; // 10冊×3件 + 1冊×2件 = 32件
+        foreach ($books as $book) {
+            // 各書籍に2〜4件のレビューをランダムに割り当て
+            $targetCount = rand(2, 4);
 
-            foreach ($users->take($targetCount) as $user) {
-                if ($reviewCount >= 32) {
-                    break;
-                }
+            // 投稿者を重複しないようにランダム選出
+            $selectedUsers = $users->random(min($targetCount, $users->count()));
 
-                $rating = rand(3, 5);
+            foreach ($selectedUsers as $user) {
+                // 評価を1〜5の全範囲でランダム化
+                $rating = rand(1, 5);
+
                 Review::create([
                     'user_id' => $user->id,
                     'book_id' => $book->id,
-                    'rating' => $rating,
+                    'rating'  => $rating,
                     'comment' => $comments[$rating],
                 ]);
-
-                $reviewCount++;
             }
         }
     }
