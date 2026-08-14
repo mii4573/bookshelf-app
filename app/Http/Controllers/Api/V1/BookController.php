@@ -68,7 +68,13 @@ class BookController extends Controller
      */
     public function store(BookStoreRequest $request)
     {
+        // 1. Policy 認可チェック（認証済みか）
+        $this->authorize('create', Book::class);
+
         $validated = $request->validated();
+
+        // ログイン中ユーザーの ID を設定
+        $validated['user_id'] = $request->user()->id;
 
         // 【画像対策】image_url が空の場合はデフォルト画像URLを補完
         if (empty($validated['image_url'])) {
@@ -108,6 +114,9 @@ class BookController extends Controller
                 'message' => '書籍が見つかりません',
             ], 404);
         }
+
+        // 2. Policy 認可チェック（本人以外の更新をブロック）
+        $this->authorize('update', $book);
         
         $validated = $request->validated();
 
@@ -137,6 +146,9 @@ class BookController extends Controller
                 'message' => '書籍が見つかりません',
             ], 404);
         }
+
+        // 3. Policy 認可チェック（本人以外の削除をブロック）
+        $this->authorize('delete', $book);
 
         $book->delete();
 

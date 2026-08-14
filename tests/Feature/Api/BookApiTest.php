@@ -48,6 +48,63 @@ class BookApiTest extends TestCase
     }
 
     /** @test */
+    public function 未認証ユーザーは登録・更新・削除できない()
+    {
+        $book = Book::factory()->create();
+
+        // 未認証での登録試行 -> 401
+        $this->postJson('/api/v1/books', [
+            'title' => '未認証テスト',
+        ])->assertUnauthorized();
+
+        // 未認証での更新試行 -> 401
+        $this->putJson("/api/v1/books/{$book->id}", [
+            'title' => '未認証更新',
+        ])->assertUnauthorized();
+
+        // 未認証での削除試行 -> 401
+        $this->deleteJson("/api/v1/books/{$book->id}")
+             ->assertUnauthorized();
+    }
+
+    /** @test */
+    public function 他人の書籍は更新できない()
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+        $genre = Genre::factory()->create();
+
+        // バリデーションを通すため、必要そうなパラメータをすべて網羅して送信
+        $response = $this->actingAs($otherUser, 'sanctum')
+             ->putJson("/api/v1/books/{$book->id}", [
+                 'user_id' => $owner->id,
+                 'title' => '勝手に更新',
+                 'author' => '勝手な著者',
+                 'isbn' => '9784123456789',
+                 'published_date' => '2026-01-01',
+                 'description' => 'テスト説明',
+                 'genres' => [$genre->id],
+             ]);
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function 他人の書籍は削除できない()
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $owner->id]);
+
+        // 削除はパラメータ不要のため、純粋に 403 Forbidden が返るか検証
+        $response = $this->actingAs($otherUser, 'sanctum')
+             ->deleteJson("/api/v1/books/{$book->id}");
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
     public function 公開API登録_書籍を登録できる()
     {
         $user = User::factory()->create();
@@ -63,7 +120,6 @@ class BookApiTest extends TestCase
             'genres' => [$genre->id],
         ]);
 
-        // 【修正】要件定義通り 201 Created が返ってくることをアサート
         $response->assertCreated(); 
         $this->assertDatabaseHas('books', ['title' => 'API新規書籍']);
     }
@@ -100,7 +156,6 @@ class BookApiTest extends TestCase
 
         $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/v1/books/{$book->id}");
 
-        // 【修正】要件定義通り 204 No Content（レスポンスボディなし）であることをアサート
         $response->assertNoContent(); 
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
     }

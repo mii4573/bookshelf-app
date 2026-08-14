@@ -23,13 +23,13 @@ class BookStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            // 'user_id' のバリデーションルールを削除
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
-            'isbn' => ['required', 'string', 'unique:books,isbn'],
+            'isbn' => ['required', 'digits:13', 'unique:books,isbn'],
             'published_date' => ['required', 'date'],
             'description' => ['nullable', 'string'],
-            'image_url' => ['nullable', 'url', 'max:2048'],
+            'image_url' => ['nullable', 'url', 'max:255'],
             'genres' => ['required', 'array', 'min:1'],
             'genres.*' => ['integer', 'exists:genres,id'],
         ];
@@ -38,9 +38,7 @@ class BookStoreRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => '登録者は必須です',
-            'user_id.integer' => '登録者IDは整数で入力してください',
-            'user_id.exists' => '指定された登録者は存在しません',
+            // user_id 関連のメッセージも不要になるため削除
             'title.required' => 'タイトルは必須です',
             'title.max' => 'タイトルは255文字以内で入力してください',
             'author.required' => '著者名は必須です',
@@ -48,7 +46,7 @@ class BookStoreRequest extends FormRequest
             'isbn.required' => 'ISBNは必須です',
             'isbn.digits' => 'ISBNは13桁で入力してください',
             'isbn.unique' => 'このISBNは既に使用されています',
-            'published_at.required' => '出版日は必須です',
+            'published_date.required' => '出版日は必須です',
             'published_date.date' => '出版日は有効な日付形式で入力してください',
             'image_url.url' => '画像URLは有効なURL形式で入力してください',
             'image_url.max' => '画像URLは255文字以内で入力してください',
