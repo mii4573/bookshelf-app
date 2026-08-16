@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
 class BookController extends Controller
@@ -13,15 +14,54 @@ class BookController extends Controller
     /**
      * 書籍一覧画面
      */
-    public function index()
+    public function index(Request $request)
     {
-        // with('genres') に加え、reviews の平均評価を取得する withAvg を追加
-        $books = Book::with('genres')
-            ->withAvg('reviews', 'rating')
-            ->latest()
-            ->paginate(10);
+        $query = Book::with('genres')
+            ->withAvg('reviews', 'rating');
 
-        return view('books.index', compact('books'));
+        // 1. キーワード検索（title または author の部分一致）
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                  ->orWhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        // 2. ジャンル絞り込み
+        if ($request->filled('genre')) {
+            $query->whereHas('genres', function ($q) use ($request) {
+                $q->where('genres.id', $request->genre);
+            });
+        }
+
+        // 3. ソート処理
+        $sort = $request->input('sort', 'latest');
+        switch ($sort) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'title':
+                $query->orderBy('title', 'asc');
+                break;
+            case 'rating':
+                $query->orderByRaw('reviews_avg_rating IS NULL ASC')
+                      ->orderBy('reviews_avg_rating', 'desc');
+                break;
+            case 'newest':
+            case 'latest':
+            default:
+                $query->latest();
+                break;
+        }
+
+        // 4. ページネーション（検索条件パラメータを保持）
+        $books = $query->paginate(10)->withQueryString();
+
+        // 検索フォームの選択肢用ジャンル一覧
+        $genres = Genre::all();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**
@@ -39,11 +79,10 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request)
     {
-        // validated() から genres だけを除外して書籍を作成
         $validated = $request->validated();
         $book = $request->user()->books()->create(Arr::except($validated, ['genres']));
 
-        // ジャンルの紐付け (中間テーブル)
+        // ジャンルの紐付け
         $book->genres()->sync($request->validated('genres'));
 
         return redirect()
@@ -56,7 +95,6 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
-        // レビューを新しい順（latest）にしつつ、関連データ（user, likedByUsers）も一緒にEager Load
         $book->load([
             'genres',
             'reviews' => function ($query) {
@@ -72,7 +110,6 @@ class BookController extends Controller
      */
     public function edit(Book $book)
     {
-        // Policy による認可チェック
         $this->authorize('update', $book);
 
         $genres = Genre::all();
@@ -86,7 +123,6 @@ class BookController extends Controller
      */
     public function update(UpdateBookRequest $request, Book $book)
     {
-        // 認可チェックは UpdateBookRequest 内の authorize() で自動実行されるため省略可
         $validated = $request->validated();
         $book->update(Arr::except($validated, ['genres']));
         $book->genres()->sync($request->validated('genres'));
@@ -101,10 +137,8 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        // Policy による認可チェック
         $this->authorize('delete', $book);
 
-        // 関連データ（ジャンル紐付け・レビュー・お気に入り）はDB制約やリレーションにより適切に処理
         $book->delete();
 
         return redirect()

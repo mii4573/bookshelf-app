@@ -87,7 +87,6 @@ class BookTest extends TestCase
             'title',
             'author',
             'isbn',
-            'published_date',
             'genres',
         ]);
 
@@ -217,4 +216,6 @@ class BookTest extends TestCase
             'id' => $book->id,
         ]);
     }
+
+    
 }

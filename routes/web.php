@@ -22,7 +22,7 @@ Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index
 // --- ログイン必須エリア ---
 Route::middleware(['auth'])->group(function () {
 
-    // 書籍管理
+    // 書籍管理（登録・編集・更新・削除）
     Route::get('/books/create', [BookController::class, 'create'])->name('books.create');
     Route::post('/books', [BookController::class, 'store'])->name('books.store');
     Route::get('/books/{book}/edit', [BookController::class, 'edit'])->name('books.edit');
@@ -50,10 +50,13 @@ Route::middleware(['auth'])->group(function () {
 
     // レビューのいいね関連
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'store'])->name('reviews.like');
+
+    // --- 未実装機能のダミールート（エラー回避用・重複削除済み） ---
+    Route::get('/notifications', fn () => 'Notifications Page (準備中)')->name('notifications.index');
+    Route::get('/reading-plans', fn () => 'Reading Plans Page (準備中)')->name('reading-plans.index');
+    Route::get('/reports', fn () => 'Reports Page (準備中)')->name('reports.index');
+
 });
 
-// --- 詳細画面（/books/create などとのURL衝突を防ぐため一番下に配置） ---
+// --- 詳細画面（/books/create など固定パスとのURL衝突を防ぐため一番下に配置） ---
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');
-
-// ランキング画面（ゲストアクセス可）
-Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');

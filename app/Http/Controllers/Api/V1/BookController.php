@@ -8,7 +8,10 @@ use App\Http\Requests\Api\V1\BookStoreRequest;
 use App\Http\Requests\Api\V1\BookUpdateRequest;
 use App\Http\Resources\Api\V1\BookResource;
 use App\Models\Book;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BookController extends Controller
 {
@@ -21,7 +24,6 @@ class BookController extends Controller
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
-        // キーワード検索 (タイトルまたは著者)
         if ($request->filled('keyword')) {
             $keyword = $request->keyword;
             $query->where(function ($q) use ($keyword) {
@@ -30,14 +32,12 @@ class BookController extends Controller
             });
         }
 
-        // ジャンル絞り込み
         if ($request->filled('genre')) {
             $query->whereHas('genres', function ($q) use ($request) {
                 $q->where('genres.id', $request->genre);
             });
         }
 
-        // ページネーション
         $perPage = $request->get('per_page', 20);
         $books = $query->latest('id')->paginate($perPage);
 
@@ -54,7 +54,7 @@ class BookController extends Controller
             ->withCount('reviews')
             ->find($id);
 
-        if (! $book) {
+        if (!$book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);
@@ -64,24 +64,96 @@ class BookController extends Controller
     }
 
     /**
+     * ISBN指定による書籍検索 API
+     */
+    public function searchIsbn(string $isbn)
+    {
+        if (!ctype_digit($isbn) || strlen($isbn) !== 13) {
+            return response()->json([
+                'message' => 'ISBNは整数で入力してください。',
+            ], 422);
+        }
+
+        try {
+            // 1. OpenBD API の呼び出し
+            $openBdResponse = Http::get("https://api.openbd.jp/v1/get?isbn={$isbn}");
+
+            if ($openBdResponse->failed()) {
+                return response()->json([
+                    'message' => '外部APIとの通信に失敗しました。',
+                ], 500);
+            }
+
+            $openBdData = $openBdResponse->json();
+
+            if (!empty($openBdData) && isset($openBdData[0]) && $openBdData[0] !== null) {
+                $summary = $openBdData[0]['summary'] ?? [];
+
+                // YYYYMMDD -> YYYY-MM-DD に整形
+                $pubdate = $summary['pubdate'] ?? '';
+                if (preg_match('/^(\d{4})(\d{2})(\d{2})$/', $pubdate, $m)) {
+                    $publishedDate = "{$m[1]}-{$m[2]}-{$m[3]}";
+                } else {
+                    $publishedDate = $pubdate;
+                }
+
+                return response()->json([
+                    'title'          => $summary['title'] ?? '',
+                    'author'         => $summary['author'] ?? '',
+                    'published_date' => $publishedDate,
+                    'description'    => $summary['description'] ?? '',
+                ], 200);
+            }
+
+            // 2. Google Books API の呼び出し
+            $googleResponse = Http::get("https://www.googleapis.com/books/v1/volumes?q=isbn:{$isbn}");
+
+            if ($googleResponse->failed()) {
+                return response()->json([
+                    'message' => '外部APIとの通信に失敗しました。',
+                ], 500);
+            }
+
+            $googleData = $googleResponse->json();
+
+            if (!empty($googleData['items'])) {
+                $volumeInfo = $googleData['items'][0]['volumeInfo'] ?? [];
+                $authors = isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '';
+
+                return response()->json([
+                    'title'          => $volumeInfo['title'] ?? '',
+                    'author'         => $authors,
+                    'published_date' => $volumeInfo['publishedDate'] ?? '',
+                    'description'    => $volumeInfo['description'] ?? '',
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => '該当する書籍情報が見つかりませんでした。',
+            ], 404);
+
+        } catch (\Exception $e) {
+            Log::error('ISBN Search Error: ' . $e->getMessage());
+            return response()->json([
+                'message' => '外部APIとの通信に失敗しました。',
+            ], 500);
+        }
+    }
+
+    /**
      * 書籍登録 API
      */
     public function store(BookStoreRequest $request)
     {
-        // 1. Policy 認可チェック（認証済みか）
         $this->authorize('create', Book::class);
 
         $validated = $request->validated();
-
-        // ログイン中ユーザーの ID を設定
         $validated['user_id'] = $request->user()->id;
 
-        // 【画像対策】image_url が空の場合はデフォルト画像URLを補完
         if (empty($validated['image_url'])) {
             $validated['image_url'] = 'https://placehold.co/400x600?text=No+Image';
         }
 
-        // トランザクション処理（DB登録＆ジャンル紐付け）
         $book = DB::transaction(function () use ($request, $validated) {
             $book = Book::create($validated);
             if ($request->has('genres')) {
@@ -91,12 +163,10 @@ class BookController extends Controller
             return $book;
         });
 
-        // リレーション＆追加情報のロード（トランザクション外で実行）
         $book->load('genres')
             ->loadAvg('reviews', 'rating')
             ->loadCount('reviews');
 
-        // 要件: 201ステータスと登録情報を返し、成功メッセージは含めない
         return (new BookResource($book))
             ->response()
             ->setStatusCode(201);
@@ -109,15 +179,13 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (! $book) {
+        if (!$book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);
         }
 
-        // 2. Policy 認可チェック（本人以外の更新をブロック）
         $this->authorize('update', $book);
-        
         $validated = $request->validated();
 
         DB::transaction(function () use ($request, $book, $validated) {
@@ -141,18 +209,15 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (! $book) {
+        if (!$book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);
         }
 
-        // 3. Policy 認可チェック（本人以外の削除をブロック）
         $this->authorize('delete', $book);
-
         $book->delete();
 
-        // 要件: 204 No Content を返し、レスポンスボディは返さない
         return response()->noContent();
     }
 }

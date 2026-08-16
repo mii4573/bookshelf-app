@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\V1\AuthController; // ※タスク2で作成します
+use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\BookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +15,13 @@ Route::prefix('v1')->group(function () {
     // トークン発行 API（ログイン）
     Route::post('/login', [AuthController::class, 'login']);
 
-    // 書籍一覧・詳細取得
+    // 書籍一覧
     Route::get('/books', [BookController::class, 'index']);
+
+    // ★追加: ISBN検索 API（/{book} の詳細取得より上に書くのがポイント）
+    Route::get('/books/search-isbn/{isbn}', [BookController::class, 'searchIsbn']);
+
+    // 書籍詳細取得
     Route::get('/books/{book}', [BookController::class, 'show']);
 
 
