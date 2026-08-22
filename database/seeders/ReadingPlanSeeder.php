@@ -17,7 +17,7 @@ class ReadingPlanSeeder extends Seeder
     {
         // 1. 主要ユーザー（山田太郎）の取得（UserSeederで作られた既存ユーザーを使う）
         $mainUser = User::where('name', '山田太郎')->first() ?? User::first();
-        
+
         // 2. 他ユーザーの取得（認可・分離テスト用）
         $otherUsers = User::where('id', '!=', $mainUser->id)->get();
 
@@ -27,7 +27,7 @@ class ReadingPlanSeeder extends Seeder
         // -------------------------------------------------------------
         // シナリオ A: 山田太郎に主要な通知・計画パターンを集約
         // -------------------------------------------------------------
-        
+
         // パターン1: 3日前 (リマインド通知対象)
         $plan3DaysBefore = ReadingPlan::factory()->threeDaysBefore()->create([
             'user_id' => $mainUser->id,

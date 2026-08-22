@@ -44,31 +44,34 @@ class GoogleBooksService
 
             $data = $response->json();
 
-            if (empty($data['totalItems']) || !isset($data['items'][0]['volumeInfo'])) {
+            if (empty($data['totalItems']) || ! isset($data['items'][0]['volumeInfo'])) {
                 // isbn: で引っかからない場合のフォールバック検索
                 $response = Http::withoutVerifying()
                     ->get("https://www.googleapis.com/books/v1/volumes?q={$isbn}");
-                if ($response->failed()) return null;
+                if ($response->failed()) {
+                    return null;
+                }
                 $data = $response->json();
             }
 
-            if (empty($data['totalItems']) || !isset($data['items'][0]['volumeInfo'])) {
+            if (empty($data['totalItems']) || ! isset($data['items'][0]['volumeInfo'])) {
                 return null;
             }
 
             $info = $data['items'][0]['volumeInfo'];
 
             return [
-                'title'          => $info['title'] ?? '',
-                'author'         => isset($info['authors']) ? implode(', ', $info['authors']) : '',
-                'publisher'      => $info['publisher'] ?? '',
+                'title' => $info['title'] ?? '',
+                'author' => isset($info['authors']) ? implode(', ', $info['authors']) : '',
+                'publisher' => $info['publisher'] ?? '',
                 'published_date' => $this->formatDate($info['publishedDate'] ?? ''),
-                'description'    => $info['description'] ?? '',
-                'image_url'      => $info['imageLinks']['thumbnail'] ?? ($info['imageLinks']['smallThumbnail'] ?? null),
-                'isbn'           => $isbn,
+                'description' => $info['description'] ?? '',
+                'image_url' => $info['imageLinks']['thumbnail'] ?? ($info['imageLinks']['smallThumbnail'] ?? null),
+                'isbn' => $isbn,
             ];
         } catch (\Exception $e) {
-            \Log::error("GoogleBooksService Error: " . $e->getMessage());
+            \Log::error('GoogleBooksService Error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -95,16 +98,17 @@ class GoogleBooksService
             $summary = $data[0]['summary'];
 
             return [
-                'title'          => $summary['title'] ?? '',
-                'author'         => $summary['author'] ?? '',
-                'publisher'      => $summary['publisher'] ?? '',
+                'title' => $summary['title'] ?? '',
+                'author' => $summary['author'] ?? '',
+                'publisher' => $summary['publisher'] ?? '',
                 'published_date' => $this->formatDate($summary['pubdate'] ?? ''),
-                'description'    => $summary['cover'] ? '' : '',
-                'image_url'      => $summary['cover'] ?? null,
-                'isbn'           => $isbn,
+                'description' => $summary['cover'] ? '' : '',
+                'image_url' => $summary['cover'] ?? null,
+                'isbn' => $isbn,
             ];
         } catch (\Exception $e) {
-            \Log::error("openBD Error: " . $e->getMessage());
+            \Log::error('openBD Error: '.$e->getMessage());
+
             return null;
         }
     }
@@ -114,19 +118,21 @@ class GoogleBooksService
      */
     private function formatDate(string $rawDate): string
     {
-        if (!$rawDate) return '';
+        if (! $rawDate) {
+            return '';
+        }
 
         // YYYYMMDD 形式 (openBD用)
         if (preg_match('/^\d{8}$/', $rawDate)) {
-            return substr($rawDate, 0, 4) . '-' . substr($rawDate, 4, 2) . '-' . substr($rawDate, 6, 2);
+            return substr($rawDate, 0, 4).'-'.substr($rawDate, 4, 2).'-'.substr($rawDate, 6, 2);
         }
         // YYYY 形式
         if (preg_match('/^\d{4}$/', $rawDate)) {
-            return $rawDate . '-01-01';
+            return $rawDate.'-01-01';
         }
         // YYYY-MM 形式
         if (preg_match('/^\d{4}-\d{2}$/', $rawDate)) {
-            return $rawDate . '-01';
+            return $rawDate.'-01';
         }
 
         return $rawDate;

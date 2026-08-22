@@ -6,7 +6,6 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class BookApiTest extends TestCase
@@ -14,33 +13,33 @@ class BookApiTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function 公開API一覧取得_書籍一覧APIを取得できる()
+    public function 公開_ap_i一覧取得_書籍一覧_ap_iを取得できる()
     {
         Book::factory()->count(3)->create();
 
         $response = $this->getJson('/api/v1/books');
 
         $response->assertOk()
-                 ->assertJsonStructure([
-                     'data' => [
-                         '*' => ['id', 'title', 'author']
-                     ]
-                 ]);
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => ['id', 'title', 'author'],
+                ],
+            ]);
     }
 
     /** @test */
-    public function 公開API詳細取得_書籍詳細APIを取得できる()
+    public function 公開_ap_i詳細取得_書籍詳細_ap_iを取得できる()
     {
         $book = Book::factory()->create();
 
         $response = $this->getJson("/api/v1/books/{$book->id}");
 
         $response->assertOk()
-                 ->assertJsonPath('data.id', $book->id);
+            ->assertJsonPath('data.id', $book->id);
     }
 
     /** @test */
-    public function 公開API詳細取得_存在しないIDは404を返す()
+    public function 公開_ap_i詳細取得_存在しない_i_dは404を返す()
     {
         $response = $this->getJson('/api/v1/books/99999');
 
@@ -64,7 +63,7 @@ class BookApiTest extends TestCase
 
         // 未認証での削除試行 -> 401
         $this->deleteJson("/api/v1/books/{$book->id}")
-             ->assertUnauthorized();
+            ->assertUnauthorized();
     }
 
     /** @test */
@@ -77,15 +76,15 @@ class BookApiTest extends TestCase
 
         // バリデーションを通すため、必要そうなパラメータをすべて網羅して送信
         $response = $this->actingAs($otherUser, 'sanctum')
-             ->putJson("/api/v1/books/{$book->id}", [
-                 'user_id' => $owner->id,
-                 'title' => '勝手に更新',
-                 'author' => '勝手な著者',
-                 'isbn' => '9784123456789',
-                 'published_date' => '2026-01-01',
-                 'description' => 'テスト説明',
-                 'genres' => [$genre->id],
-             ]);
+            ->putJson("/api/v1/books/{$book->id}", [
+                'user_id' => $owner->id,
+                'title' => '勝手に更新',
+                'author' => '勝手な著者',
+                'isbn' => '9784123456789',
+                'published_date' => '2026-01-01',
+                'description' => 'テスト説明',
+                'genres' => [$genre->id],
+            ]);
 
         $response->assertForbidden();
     }
@@ -99,13 +98,13 @@ class BookApiTest extends TestCase
 
         // 削除はパラメータ不要のため、純粋に 403 Forbidden が返るか検証
         $response = $this->actingAs($otherUser, 'sanctum')
-             ->deleteJson("/api/v1/books/{$book->id}");
+            ->deleteJson("/api/v1/books/{$book->id}");
 
         $response->assertForbidden();
     }
 
     /** @test */
-    public function 公開API登録_書籍を登録できる()
+    public function 公開_ap_i登録_書籍を登録できる()
     {
         $user = User::factory()->create();
         $genre = Genre::factory()->create();
@@ -120,12 +119,12 @@ class BookApiTest extends TestCase
             'genres' => [$genre->id],
         ]);
 
-        $response->assertCreated(); 
+        $response->assertCreated();
         $this->assertDatabaseHas('books', ['title' => 'API新規書籍']);
     }
 
     /** @test */
-    public function 公開API更新_書籍を更新できる()
+    public function 公開_ap_i更新_書籍を更新できる()
     {
         $user = User::factory()->create();
         $book = Book::factory()->create(['user_id' => $user->id]);
@@ -149,19 +148,19 @@ class BookApiTest extends TestCase
     }
 
     /** @test */
-    public function 公開API削除_書籍を削除できる()
+    public function 公開_ap_i削除_書籍を削除できる()
     {
         $user = User::factory()->create();
         $book = Book::factory()->create(['user_id' => $user->id]);
 
         $response = $this->actingAs($user, 'sanctum')->deleteJson("/api/v1/books/{$book->id}");
 
-        $response->assertNoContent(); 
+        $response->assertNoContent();
         $this->assertDatabaseMissing('books', ['id' => $book->id]);
     }
 
     /** @test */
-    public function 公開API削除_存在しないIDは404を返す()
+    public function 公開_ap_i削除_存在しない_i_dは404を返す()
     {
         $user = User::factory()->create();
 

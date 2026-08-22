@@ -8,7 +8,6 @@ use App\Http\Requests\Api\V1\BookStoreRequest;
 use App\Http\Requests\Api\V1\BookUpdateRequest;
 use App\Http\Resources\Api\V1\BookResource;
 use App\Models\Book;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -54,7 +53,7 @@ class BookController extends Controller
             ->withCount('reviews')
             ->find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);
@@ -68,7 +67,7 @@ class BookController extends Controller
      */
     public function searchIsbn(string $isbn)
     {
-        if (!ctype_digit($isbn) || strlen($isbn) !== 13) {
+        if (! ctype_digit($isbn) || strlen($isbn) !== 13) {
             return response()->json([
                 'message' => 'ISBNは整数で入力してください。',
             ], 422);
@@ -86,8 +85,12 @@ class BookController extends Controller
 
             $openBdData = $openBdResponse->json();
 
-            if (!empty($openBdData) && isset($openBdData[0]) && $openBdData[0] !== null) {
-                $summary = $openBdData[0]['summary'] ?? [];
+            // ★ ここに移動（変数定義の後にログを出力）
+            Log::info('OpenBD Response: ', [$openBdData]);
+
+            // openbdに「summary」がちゃんと存在する場合のみ採用する
+            if (! empty($openBdData) && isset($openBdData[0]['summary'])) {
+                $summary = $openBdData[0]['summary'];
 
                 // YYYYMMDD -> YYYY-MM-DD に整形
                 $pubdate = $summary['pubdate'] ?? '';
@@ -98,10 +101,10 @@ class BookController extends Controller
                 }
 
                 return response()->json([
-                    'title'          => $summary['title'] ?? '',
-                    'author'         => $summary['author'] ?? '',
+                    'title' => $summary['title'] ?? '',
+                    'author' => $summary['author'] ?? '',
                     'published_date' => $publishedDate,
-                    'description'    => $summary['description'] ?? '',
+                    'description' => $summary['description'] ?? '',
                 ], 200);
             }
 
@@ -116,15 +119,15 @@ class BookController extends Controller
 
             $googleData = $googleResponse->json();
 
-            if (!empty($googleData['items'])) {
+            if (! empty($googleData['items'])) {
                 $volumeInfo = $googleData['items'][0]['volumeInfo'] ?? [];
                 $authors = isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '';
 
                 return response()->json([
-                    'title'          => $volumeInfo['title'] ?? '',
-                    'author'         => $authors,
+                    'title' => $volumeInfo['title'] ?? '',
+                    'author' => $authors,
                     'published_date' => $volumeInfo['publishedDate'] ?? '',
-                    'description'    => $volumeInfo['description'] ?? '',
+                    'description' => $volumeInfo['description'] ?? '',
                 ], 200);
             }
 
@@ -133,7 +136,8 @@ class BookController extends Controller
             ], 404);
 
         } catch (\Exception $e) {
-            Log::error('ISBN Search Error: ' . $e->getMessage());
+            Log::error('ISBN Search Error: '.$e->getMessage());
+
             return response()->json([
                 'message' => '外部APIとの通信に失敗しました。',
             ], 500);
@@ -179,7 +183,7 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);
@@ -209,7 +213,7 @@ class BookController extends Controller
     {
         $book = Book::find($id);
 
-        if (!$book) {
+        if (! $book) {
             return response()->json([
                 'message' => '書籍が見つかりません',
             ], 404);

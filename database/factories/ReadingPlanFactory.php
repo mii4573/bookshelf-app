@@ -2,18 +2,18 @@
 
 namespace Database\Factories;
 
+use App\Models\Book;
 use App\Models\ReadingPlan;
 use App\Models\User;
-use App\Models\Book;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ReadingPlan>
+ * @extends Factory<ReadingPlan>
  */
 class ReadingPlanFactory extends Factory
 {
-   protected $model = ReadingPlan::class;
+    protected $model = ReadingPlan::class;
 
     /**
      * デフォルトの定義
@@ -21,10 +21,10 @@ class ReadingPlanFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id'     => User::factory(),
-            'book_id'     => Book::factory(),
+            'user_id' => User::factory(),
+            'book_id' => Book::factory(),
             'target_date' => Carbon::today()->addDays(5)->format('Y-m-d'),
-            'status'      => 'in_progress',
+            'status' => 'in_progress',
         ];
     }
 
@@ -35,7 +35,7 @@ class ReadingPlanFactory extends Factory
     {
         return $this->state(fn () => [
             'target_date' => Carbon::today()->addDays(3)->format('Y-m-d'),
-            'status'      => 'in_progress',
+            'status' => 'in_progress',
         ]);
     }
 
@@ -44,7 +44,7 @@ class ReadingPlanFactory extends Factory
     {
         return $this->state(fn () => [
             'target_date' => Carbon::today()->format('Y-m-d'),
-            'status'      => 'in_progress',
+            'status' => 'in_progress',
         ]);
     }
 
@@ -53,7 +53,7 @@ class ReadingPlanFactory extends Factory
     {
         return $this->state(fn () => [
             'target_date' => Carbon::today()->subDays(3)->format('Y-m-d'),
-            'status'      => 'in_progress',
+            'status' => 'in_progress',
         ]);
     }
 
@@ -62,7 +62,7 @@ class ReadingPlanFactory extends Factory
     {
         return $this->state(fn () => [
             'target_date' => Carbon::today()->subDays(1)->format('Y-m-d'),
-            'status'      => 'completed',
+            'status' => 'completed',
         ]);
     }
 }

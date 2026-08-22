@@ -24,7 +24,7 @@ class BookController extends Controller
             $keyword = $request->keyword;
             $query->where(function ($q) use ($keyword) {
                 $q->where('title', 'like', "%{$keyword}%")
-                  ->orWhere('author', 'like', "%{$keyword}%");
+                    ->orWhere('author', 'like', "%{$keyword}%");
             });
         }
 
@@ -46,7 +46,7 @@ class BookController extends Controller
                 break;
             case 'rating':
                 $query->orderByRaw('reviews_avg_rating IS NULL ASC')
-                      ->orderBy('reviews_avg_rating', 'desc');
+                    ->orderBy('reviews_avg_rating', 'desc');
                 break;
             case 'newest':
             case 'latest':

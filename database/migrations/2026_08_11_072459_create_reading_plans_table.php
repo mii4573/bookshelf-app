@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('reading_plans', function (Blueprint $table) {
             $table->id();
-        $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('book_id')->constrained()->cascadeOnDelete();
-        $table->date('target_date');
-        $table->timestamp('completed_at')->nullable(); // 読了ボタン押下時に現在日時が入る
-        $table->string('status')->default('not_started');
-        $table->timestamps();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('book_id')->constrained()->cascadeOnDelete();
+            $table->date('target_date');
+            $table->timestamp('completed_at')->nullable(); // 読了ボタン押下時に現在日時が入る
+            $table->string('status')->default('pending');
+            $table->timestamps();
         });
     }
 

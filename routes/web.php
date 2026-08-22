@@ -3,7 +3,10 @@
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +21,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => redirect()->route('books.index'));
 Route::get('/books', [BookController::class, 'index'])->name('books.index');
 Route::get('/ranking', [RankingController::class, 'index'])->name('ranking.index');
+
+// フロントエンドが叩いているパスを、API用のコントローラーに繋ぐ
+Route::get('/books/isbn/{isbn}', [App\Http\Controllers\Api\V1\BookController::class, 'searchIsbn']);
 
 // --- ログイン必須エリア ---
 Route::middleware(['auth'])->group(function () {
@@ -51,12 +57,24 @@ Route::middleware(['auth'])->group(function () {
     // レビューのいいね関連
     Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'store'])->name('reviews.like');
 
-    // --- 未実装機能のダミールート（エラー回避用・重複削除済み） ---
-    Route::get('/notifications', fn () => 'Notifications Page (準備中)')->name('notifications.index');
-    Route::get('/reading-plans', fn () => 'Reading Plans Page (準備中)')->name('reading-plans.index');
-    Route::get('/reports', fn () => 'Reports Page (準備中)')->name('reports.index');
+    // 通知機能
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
 
-});
+    // 読書計画
+    Route::get('/reading-plans', [ReadingPlanController::class, 'index'])->name('reading-plans.index');
+    Route::get('/reading-plans/create', [ReadingPlanController::class, 'create'])->name('reading-plans.create');
+    Route::post('/reading-plans', [ReadingPlanController::class, 'store'])->name('reading-plans.store');
+    Route::get('/reading-plans/{readingPlan}/edit', [ReadingPlanController::class, 'edit'])->name('reading-plans.edit');
+    Route::put('/reading-plans/{readingPlan}', [ReadingPlanController::class, 'update'])->name('reading-plans.update');
+    Route::delete('/reading-plans/{readingPlan}', [ReadingPlanController::class, 'destroy'])->name('reading-plans.destroy');
+
+    // 読了アクション用ルート
+    Route::match(['post', 'patch'], '/reading-plans/{readingPlan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+}); // ← ログイン必須エリアのグループ閉じ
 
 // --- 詳細画面（/books/create など固定パスとのURL衝突を防ぐため一番下に配置） ---
 Route::get('/books/{book}', [BookController::class, 'show'])->name('books.show');

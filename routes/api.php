@@ -19,11 +19,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/books', [BookController::class, 'index']);
 
     // ★追加: ISBN検索 API（/{book} の詳細取得より上に書くのがポイント）
-    Route::get('/books/search-isbn/{isbn}', [BookController::class, 'searchIsbn']);
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchIsbn']);
 
     // 書籍詳細取得
     Route::get('/books/{book}', [BookController::class, 'show']);
-
 
     /*
     |--------------------------------------------------------------------------

@@ -216,6 +216,4 @@ class BookTest extends TestCase
             'id' => $book->id,
         ]);
     }
-
-    
 }

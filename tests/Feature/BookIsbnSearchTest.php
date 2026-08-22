@@ -16,12 +16,12 @@ class BookIsbnSearchTest extends TestCase
     public function test_search_isbn_validation_fails_for_invalid_length()
     {
         // 10桁のISBNを送信
-        $response = $this->getJson('/api/v1/books/search-isbn/1234567890');
+        $response = $this->getJson('books/isbn/1234567890');
 
         $response->assertStatus(422)
-                 ->assertJson([
-                     'message' => 'ISBNは整数で入力してください。',
-                 ]);
+            ->assertJson([
+                'message' => 'ISBNは整数で入力してください。',
+            ]);
     }
 
     /**
@@ -33,23 +33,23 @@ class BookIsbnSearchTest extends TestCase
             'https://api.openbd.jp/*' => Http::response([
                 [
                     'summary' => [
-                        'title'   => 'テスト書籍名',
-                        'author'  => 'テスト著者',
+                        'title' => 'テスト書籍名',
+                        'author' => 'テスト著者',
                         'pubdate' => '20260101',
                     ],
                 ],
             ], 200),
         ]);
 
-        $response = $this->getJson('/api/v1/books/search-isbn/9784774193915');
+        $response = $this->getJson('books/isbn/9784774193915');
 
         $response->assertStatus(200)
-                 ->assertJson([
-                     'title'          => 'テスト書籍名',
-                     'author'         => 'テスト著者',
-                     'published_date' => '2026-01-01',
-                     'description'    => '',
-                 ]);
+            ->assertJson([
+                'title' => 'テスト書籍名',
+                'author' => 'テスト著者',
+                'published_date' => '2026-01-01',
+                'description' => '',
+            ]);
     }
 
     /**
@@ -63,28 +63,28 @@ class BookIsbnSearchTest extends TestCase
             // Google Books API はヒットした情報を返す
             'https://www.googleapis.com/*' => Http::response([
                 'totalItems' => 1,
-                'items'      => [
+                'items' => [
                     [
                         'volumeInfo' => [
-                            'title'         => 'Google Books タイトル',
-                            'authors'       => ['著者A', '著者B'],
+                            'title' => 'Google Books タイトル',
+                            'authors' => ['著者A', '著者B'],
                             'publishedDate' => '2025-10-10',
-                            'description'   => '書籍の説明文',
+                            'description' => '書籍の説明文',
                         ],
                     ],
                 ],
             ], 200),
         ]);
 
-        $response = $this->getJson('/api/v1/books/search-isbn/9784774193915');
+        $response = $this->getJson('books/isbn/9784774193915');
 
         $response->assertStatus(200)
-                 ->assertJson([
-                     'title'          => 'Google Books タイトル',
-                     'author'         => '著者A, 著者B',
-                     'published_date' => '2025-10-10',
-                     'description'    => '書籍の説明文',
-                 ]);
+            ->assertJson([
+                'title' => 'Google Books タイトル',
+                'author' => '著者A, 著者B',
+                'published_date' => '2025-10-10',
+                'description' => '書籍の説明文',
+            ]);
     }
 
     /**
@@ -93,16 +93,16 @@ class BookIsbnSearchTest extends TestCase
     public function test_search_isbn_returns_404_when_book_not_found()
     {
         Http::fake([
-            'https://api.openbd.jp/*'     => Http::response([], 200),
+            'https://api.openbd.jp/*' => Http::response([], 200),
             'https://www.googleapis.com/*' => Http::response(['totalItems' => 0], 200),
         ]);
 
-        $response = $this->getJson('/api/v1/books/search-isbn/9780000000000');
+        $response = $this->getJson('/books/isbn/9780000000000');
 
         $response->assertStatus(404)
-                 ->assertJson([
-                     'message' => '該当する書籍情報が見つかりませんでした。',
-                 ]);
+            ->assertJson([
+                'message' => '該当する書籍情報が見つかりませんでした。',
+            ]);
     }
 
     /**
@@ -111,15 +111,15 @@ class BookIsbnSearchTest extends TestCase
     public function test_search_isbn_returns_500_on_api_failure()
     {
         Http::fake([
-            'https://api.openbd.jp/*'     => Http::response([], 200),
+            'https://api.openbd.jp/*' => Http::response([], 200),
             'https://www.googleapis.com/*' => Http::response([], 500),
         ]);
 
-        $response = $this->getJson('/api/v1/books/search-isbn/9784774193915');
+        $response = $this->getJson('/books/isbn/9784774193915');
 
         $response->assertStatus(500)
-                 ->assertJson([
-                     'message' => '外部APIとの通信に失敗しました。',
-                 ]);
+            ->assertJson([
+                'message' => '外部APIとの通信に失敗しました。',
+            ]);
     }
 }

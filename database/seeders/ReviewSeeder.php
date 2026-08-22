@@ -40,7 +40,7 @@ class ReviewSeeder extends Seeder
                 Review::create([
                     'user_id' => $user->id,
                     'book_id' => $book->id,
-                    'rating'  => $rating,
+                    'rating' => $rating,
                     'comment' => $comments[$rating],
                 ]);
             }
