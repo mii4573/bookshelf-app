@@ -28,7 +28,7 @@ class GoogleBooksServiceTest extends TestCase
             ], 200),
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('9784297123456');
 
         $this->assertNotNull($result);
@@ -54,7 +54,7 @@ class GoogleBooksServiceTest extends TestCase
             ]], 200),
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('9784297123456');
 
         $this->assertNotNull($result);
@@ -70,7 +70,7 @@ class GoogleBooksServiceTest extends TestCase
             'api.openbd.jp/v1/get*' => Http::response([null], 200),
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('0000000000000');
 
         $this->assertNull($result);
@@ -85,7 +85,7 @@ class GoogleBooksServiceTest extends TestCase
             },
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('9784297123456');
 
         $this->assertNull($result);
@@ -93,7 +93,7 @@ class GoogleBooksServiceTest extends TestCase
 
     public function test_it_returns_null_when_isbn_is_empty()
     {
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         // 記号や空文字を渡してクリーニング後に空になるケース
         $result = $service->searchByIsbn('---');
 
@@ -108,7 +108,7 @@ class GoogleBooksServiceTest extends TestCase
             'api.openbd.jp/v1/get*' => Http::response(null, 500),
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('9784297123456');
 
         $this->assertNull($result);
@@ -124,7 +124,7 @@ class GoogleBooksServiceTest extends TestCase
             },
         ]);
 
-        $service = new GoogleBooksService();
+        $service = new GoogleBooksService;
         $result = $service->searchByIsbn('9784297123456');
 
         $this->assertNull($result);

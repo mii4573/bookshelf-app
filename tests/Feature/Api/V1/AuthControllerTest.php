@@ -25,15 +25,15 @@ class AuthControllerTest extends TestCase
 
         // 実装に合わせて 'token' キーを検証
         $response->assertStatus(200)
-                 ->assertJsonStructure([
-                     'message',
-                     'token',
-                     'user' => [
-                         'id',
-                         'name',
-                         'email',
-                     ],
-                 ]);
+            ->assertJsonStructure([
+                'message',
+                'token',
+                'user' => [
+                    'id',
+                    'name',
+                    'email',
+                ],
+            ]);
     }
 
     public function test_user_cannot_login_with_invalid_password()
@@ -61,8 +61,8 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('/api/v1/logout');
 
         $response->assertStatus(200)
-                 ->assertJson([
-                     'message' => 'ログアウトし、トークンを破棄しました。',
-                 ]);
+            ->assertJson([
+                'message' => 'ログアウトし、トークンを破棄しました。',
+            ]);
     }
 }

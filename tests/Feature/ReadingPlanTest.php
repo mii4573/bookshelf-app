@@ -55,7 +55,7 @@ class ReadingPlanTest extends TestCase
         $plan = ReadingPlan::factory()->create(['user_id' => $user->id, 'status' => 'in_progress']);
 
         $response = $this->actingAs($user)->post(route('reading-plans.complete', $plan));
-        
+
         $response->assertRedirect();
         $this->assertEquals('completed', $plan->fresh()->status->value ?? $plan->fresh()->status);
     }
