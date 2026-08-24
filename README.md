@@ -108,7 +108,7 @@ docker run --rm \
    - 上記機能追加に伴うリレーション設計（`reading_plans` および `notifications` テーブルの追加）
    
 #### 応用機能追加後のER図
-![応用機能ER図](docs/bookshelf-app-advance.png)
+![応用機能ER図](docs/bookshelf-app_advance.drawio.png)
 
 ### テストの実行方法
 
