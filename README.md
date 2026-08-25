@@ -46,10 +46,9 @@ cp .env.example .env
 ```bash
 docker run --rm \
     -u "$(id -u):$(id -g)" \
-    -v "$(pwd):/var/www/html" \
-    -w /var/www/html \
-    laravelsail/php85-composer:latest \
-    composer install --ignore-platform-reqs
+    -v "$(pwd):/app" \
+    composer:latest \
+    install --ignore-platform-reqs
 ```
 
 ### 4.Sail(Dockerコンテナ)の起動
@@ -108,7 +107,7 @@ docker run --rm \
    - 上記機能追加に伴うリレーション設計（`reading_plans` および `notifications` テーブルの追加）
    
 #### 応用機能追加後のER図
-![応用機能ER図](docs/bookshelf-app_advance.drawio.png)
+![応用機能ER図](docs/bookshelf-app-advance.png)
 
 ### テストの実行方法
 
