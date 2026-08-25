@@ -28,7 +28,7 @@ return [
         'password' => 'パスワード',
         'title' => 'タイトル',
         'author' => '著者名',
-        'published_at' => '出版日',
+        'published_date' => '出版日',
         'genres' => 'ジャンル',
         'image_url' => '画像URL',
         'per_page' => '1ページあたりの件数',
